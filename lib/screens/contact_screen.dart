@@ -46,28 +46,44 @@ class _ContactScreenState extends State<ContactScreen> {
     return GradientScaffold(
       themeColor: const Color(0xFFD1C4E9), // Pastel Lavender
       appBar: AppBar(
+        centerTitle: false,
+        titleSpacing: 16,
         title: const Text(
           "Instant_Messenger ~ [Online]",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Courier', fontSize: 16),
         ),
-        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leadingWidth: 50,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10, top: 8, bottom: 8, right: 0),
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black, width: 1), // The black border
+              ),
+              child: const Icon(
+                Icons.chevron_left, // Use chevron for that specific look
+                color: Colors.black, 
+                size: 24
+              ),
+            ),
+          ),
         ),
         actions: [
            // A little retro decorative button
            Container(
              margin: const EdgeInsets.only(right: 10),
-             padding: const EdgeInsets.all(4),
+             padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black),
                 shape: BoxShape.circle,
                 color: Colors.greenAccent
               ),
-             child: const Icon(Icons.wifi, size: 16, color: Colors.black)
+             child: const Icon(Icons.wifi, size: 24, color: Colors.black)
            )
         ],
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart'; // เรียกใช้หน้า Home ที่แยกไว้
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const MyPortfolioApp());
