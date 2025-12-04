@@ -15,14 +15,33 @@ class SkillsScreen extends StatelessWidget {
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontFamily: 'Courier',
+            fontSize: 16,
           ),
         ),
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        leadingWidth: 50,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8, right: 0),
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black,
+                  width: 1,
+                ), // The black border
+              ),
+              child: const Icon(
+                Icons.chevron_left, // Use chevron for that specific look
+                color: Colors.black,
+                size: 24,
+              ),
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(
