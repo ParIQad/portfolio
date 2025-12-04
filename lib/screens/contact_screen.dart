@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/gradient_scaffold.dart';
 import '../utils/app_utils.dart';
+import '../services/api_service.dart';
 
 // 1. Simple Model for Chat Messages
 class ChatMessage {
@@ -22,17 +23,19 @@ class _ContactScreenState extends State<ContactScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  bool _isSending = false;
+
   // 2. Dummy Chat History Data
   final List<ChatMessage> _messages = [
     ChatMessage(
       text: "Hey there! Thanks for checking out my portfolio. 👋",
       isMe: false,
-      time: "01:27 AM",
+      time: "01:27",
     ),
     ChatMessage(
       text: "Are you looking for a Flutter developer for your next project?",
       isMe: false,
-      time: "01:27 AM",
+      time: "01:27",
     ),
   ];
 
@@ -176,7 +179,10 @@ class _ContactScreenState extends State<ContactScreen> {
                       Icons.email,
                       "Email",
                       Colors.pinkAccent,
-                      () => AppUtils.copyToClipboard(context, "parichad.w@kkumail.com"),
+                      () => AppUtils.copyToClipboard(
+                        context,
+                        "parichad.w@kkumail.com",
+                      ),
                     ),
                     _buildSocialButton(
                       Icons.code,
@@ -194,7 +200,8 @@ class _ContactScreenState extends State<ContactScreen> {
                       Icons.phone,
                       "Phone",
                       Colors.green,
-                      () => AppUtils.copyToClipboard(context, "+66 97 358 3442"),
+                      () =>
+                          AppUtils.copyToClipboard(context, "+66 97 358 3442"),
                     ),
                   ],
                 ),
@@ -364,12 +371,14 @@ class _ContactScreenState extends State<ContactScreen> {
               ),
               child: TextField(
                 controller: _messageController,
-                style: TextStyle(color: Colors.black),
-                decoration: const InputDecoration(
-                  hintText: "Type a message...",
+                style: const TextStyle(color: Colors.black),
+                // Disable input if sending
+                enabled: !_isSending, 
+                decoration: InputDecoration(
+                  hintText: _isSending ? "Sending..." : "Type a message...",
                   border: InputBorder.none,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),
@@ -377,7 +386,7 @@ class _ContactScreenState extends State<ContactScreen> {
           const SizedBox(width: 10),
           // Send Button
           GestureDetector(
-            onTap: _sendMessage,
+            onTap: _isSending ? null : _sendMessage,
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -404,28 +413,47 @@ class _ContactScreenState extends State<ContactScreen> {
     );
   }
 
-  void _sendMessage() {
-    if (_messageController.text.isNotEmpty) {
-      setState(() {
-        _messages.add(
-          ChatMessage(
-            text: _messageController.text,
-            isMe: true,
-            time:
-                "${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}",
-          ),
-        );
+  Future<void> _sendMessage() async {
+    final text = _messageController.text;
+    if (text.isEmpty) return;
+
+    // 1. Set Loading State
+    setState(() {
+      _isSending = true;
+    });
+
+    // 2. Call the API
+    final success = await ApiService.sendMessage(text);
+
+    // 3. Handle Response
+    if (!mounted) return; // Check if widget is still on screen
+
+    setState(() {
+      _isSending = false;
+      if (success) {
+        // Add to list only if API succeeded
+        _messages.add(ChatMessage(
+          text: text,
+          isMe: true,
+          time: "${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}",
+        ));
         _messageController.clear();
-      });
-      // Scroll to bottom after sending
-      Future.delayed(const Duration(milliseconds: 100), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+        
+        // Scroll to bottom
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        });
+      } else {
+        // Show Error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to send message. Try again.")),
         );
-      });
-    }
+      }
+    });
   }
 
   // Helper for social buttons (kept from before)

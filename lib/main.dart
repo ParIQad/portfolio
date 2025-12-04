@@ -15,7 +15,6 @@ class MyPortfolioApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        // ตั้งค่า Theme เป็น Dark Mode เพื่อความสวยงาม
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.indigo,
           brightness: Brightness.dark, 
