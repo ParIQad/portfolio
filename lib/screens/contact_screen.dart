@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../widgets/gradient_scaffold.dart';
+import '../utils/app_utils.dart';
 
 // 1. Simple Model for Chat Messages
 class ChatMessage {
   final String text;
-  final bool isMe; // true = sent by user, false = received from Alex
+  final bool isMe; // true = sent by user, false = received from Aikyu
   final String time;
 
   ChatMessage({required this.text, required this.isMe, required this.time});
@@ -36,18 +35,6 @@ class _ContactScreenState extends State<ContactScreen> {
       time: "01:27 AM",
     ),
   ];
-
-  Future<void> _launchURL(String urlString) async {
-    try {
-      final Uri url = Uri.parse(urlString);
-      // mode: LaunchMode.externalApplication ensures it opens in the browser/LinkedIn app
-      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        throw Exception('Could not launch $url');
-      }
-    } catch (e) {
-      debugPrint("Error launching URL: $e");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +168,7 @@ class _ContactScreenState extends State<ContactScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // QUICK CONNECT (Kept as is)
+                // QUICK CONNECT
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -189,25 +176,25 @@ class _ContactScreenState extends State<ContactScreen> {
                       Icons.email,
                       "Email",
                       Colors.pinkAccent,
-                      () => _copyToClipboard(context, "parichad.w@kkumail.com"),
+                      () => AppUtils.copyToClipboard(context, "parichad.w@kkumail.com"),
                     ),
                     _buildSocialButton(
                       Icons.code,
                       "GitHub",
                       Colors.black,
-                      () => _launchURL("https://github.com"),
+                      () => AppUtils.launchURL("https://github.com"),
                     ),
                     _buildSocialButton(
                       Icons.work,
                       "LinkedIn",
                       Colors.blue[700]!,
-                      () => _launchURL("https://www.linkedin.com"),
+                      () => AppUtils.launchURL("https://www.linkedin.com"),
                     ),
                     _buildSocialButton(
                       Icons.phone,
                       "Phone",
                       Colors.green,
-                      () => _copyToClipboard(context, "+66 97 358 3442"),
+                      () => AppUtils.copyToClipboard(context, "+66 97 358 3442"),
                     ),
                   ],
                 ),
@@ -478,16 +465,6 @@ class _ContactScreenState extends State<ContactScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _copyToClipboard(BuildContext context, String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Copied '$text' to clipboard!"),
-        duration: const Duration(seconds: 1),
       ),
     );
   }
