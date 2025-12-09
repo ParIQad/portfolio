@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/gradient_scaffold.dart';
-import '../../domain/entities/project.dart';
+import '../../domain/entities/project_entity.dart';
+import '../../domain/usecases/get_projects_usecase.dart';
+import '../../data/datasources/experience_local_data_source.dart';
+import '../../data/repositories/experience_repository_impl.dart';
+import '../widgets/retro_project_card.dart';
 import 'project_detail_page.dart';
 
 class ExperienceScreen extends StatefulWidget {
@@ -11,51 +15,19 @@ class ExperienceScreen extends StatefulWidget {
 }
 
 class _ExperienceScreenState extends State<ExperienceScreen> {
-  // Sample Data (You can add real images later)
-  final List<Project> projects = [
-    Project(
-      title: "E-Shop",
-      category: "App",
-      description: "A flutter shopping app with payment gateway.",
-      color: Colors.blueAccent,
-      icon: Icons.shopping_bag,
-    ),
-    Project(
-      title: "Taskify",
-      category: "Tool",
-      description: "Productivity tool for organizing daily tasks.",
-      color: Colors.teal,
-      icon: Icons.check_box,
-    ),
-    Project(
-      title: "Weather",
-      category: "API",
-      description: "Live weather tracking using OpenWeatherMap.",
-      color: Colors.orange,
-      icon: Icons.sunny,
-    ),
-    Project(
-      title: "ChatAI",
-      category: "AI",
-      description: "Chatbot interface connected to Gemini.",
-      color: Colors.purple,
-      icon: Icons.smart_toy,
-    ),
-     Project(
-      title: "Music",
-      category: "UI",
-      description: "A retro music player UI concept.",
-      color: Colors.pink,
-      icon: Icons.music_note,
-    ),
-     Project(
-      title: "Finance",
-      category: "Data",
-      description: "Personal finance tracker with charts.",
-      color: Colors.green,
-      icon: Icons.attach_money,
-    ),
-  ];
+  late final GetProjectsUseCase _getProjectsUseCase;
+  late Future<List<Project>> _projectsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Dependency Injection
+    final dataSource = ExperienceLocalDataSource();
+    final repository = ExperienceRepositoryImpl(dataSource: dataSource);
+    _getProjectsUseCase = GetProjectsUseCase(repository);
+
+    _projectsFuture = _getProjectsUseCase.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +36,12 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
       appBar: AppBar(
         title: const Text(
           "experience_works.exe",
-          style: TextStyle(fontSize: 16,color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Courier'),
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.black, 
+            fontWeight: FontWeight.bold, 
+            fontFamily: 'Courier'
+          ),
         ),
         centerTitle: false,
         titleSpacing: 16,
@@ -81,10 +58,10 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
                 border: Border.all(
                   color: Colors.black,
                   width: 1,
-                ), // The black border
+                ),
               ),
               child: const Icon(
-                Icons.chevron_left, // Use chevron for that specific look
+                Icons.chevron_left,
                 color: Colors.black,
                 size: 24,
               ),
@@ -92,83 +69,51 @@ class _ExperienceScreenState extends State<ExperienceScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // 2 Columns
-                crossAxisSpacing: 15,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.85, // Taller cards to fit text below
-              ),
-              itemCount: projects.length,
-              itemBuilder: (context, index) {
-                final project = projects[index];
-                return _buildRetroCard(context, project);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRetroCard(BuildContext context, Project project) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProjectDetailScreen(project: project),
-          ),
-        );
-      },
-      child: Column(
-        children: [
-          // The Image Area (Rounded Square)
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.black, width: 1.5),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    offset: Offset(4, 4),
-                    blurRadius: 0,
+      body: FutureBuilder<List<Project>>(
+        future: _projectsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.black),
+            );
+          } else if (snapshot.hasError) {
+            return const Center(child: Text("Error loading projects."));
+          } else if (snapshot.hasData) {
+            final projects = snapshot.data!;
+            return Column(
+              children: [
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 15,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: projects.length,
+                    itemBuilder: (context, index) {
+                      final project = projects[index];
+                      return RetroProjectCard(
+                        project: project,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => 
+                                ProjectDetailScreen(project: project),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
-                ],
-              ),
-              child: Center(
-                // Using Hero for smooth animation to the next page
-                child: Hero(
-                  tag: project.title, 
-                  child: Icon(project.icon, size: 50, color: project.color),
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // The Label Area
-          Text(
-            project.title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.black,
-            ),
-          ),
-          Text(
-            project.category,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
-        ],
+              ],
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }

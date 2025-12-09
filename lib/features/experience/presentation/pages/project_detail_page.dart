@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/project.dart'; 
+import '../../domain/entities/project_entity.dart'; 
 
 class ProjectDetailScreen extends StatelessWidget {
   // รับค่า Argument ผ่าน Constructor
