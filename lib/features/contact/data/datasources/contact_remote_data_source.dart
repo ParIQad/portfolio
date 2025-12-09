@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class ApiService {
+class ContactRemoteDataSource {
   // The URL for the fake API
   static const String _baseUrl = 'https://jsonplaceholder.typicode.com/posts';
 
-  // Function to send the message
-  static Future<bool> sendMessage(String message) async {
+  Future<bool> sendMessageToApi(String message) async {
     try {
       final response = await http.post(
         Uri.parse(_baseUrl),

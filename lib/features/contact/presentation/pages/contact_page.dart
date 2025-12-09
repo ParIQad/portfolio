@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import '../widgets/gradient_scaffold.dart';
-import '../utils/app_utils.dart';
-import '../services/api_service.dart';
-
-// 1. Simple Model for Chat Messages
-class ChatMessage {
-  final String text;
-  final bool isMe; // true = sent by user, false = received from Aikyu
-  final String time;
-
-  ChatMessage({required this.text, required this.isMe, required this.time});
-}
+import '../../../../core/widgets/gradient_scaffold.dart';
+import '../../../../core/utils/app_utils.dart';
+import '../../domain/entities/chat_message.dart';
+import '../../domain/usecases/send_message_usecase.dart';
+import '../../data/repositories/contact_repository_impl.dart';
+import '../../data/datasources/contact_remote_data_source.dart';
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -24,6 +18,18 @@ class _ContactScreenState extends State<ContactScreen> {
   final ScrollController _scrollController = ScrollController();
 
   bool _isSending = false;
+
+  // Ideally, this dependency injection should happen outside the widget (e.g., via GetIt or Provider)
+  // But for this refactor, we initialize it here to keep it self-contained.
+  late final SendMessageUseCase _sendMessageUseCase;
+
+  @override
+  void initState() {
+    super.initState();
+    final dataSource = ContactRemoteDataSource();
+    final repository = ContactRepositoryImpl(dataSource: dataSource);
+    _sendMessageUseCase = SendMessageUseCase(repository);
+  }
 
   // 2. Dummy Chat History Data
   final List<ChatMessage> _messages = [
@@ -100,7 +106,6 @@ class _ContactScreenState extends State<ContactScreen> {
           Container(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
             // Give it a slight background so it stands out from chat
-            // ignore: deprecated_member_use
             color: Colors.white.withOpacity(0.3),
             child: Column(
               children: [
@@ -188,13 +193,13 @@ class _ContactScreenState extends State<ContactScreen> {
                       Icons.code,
                       "GitHub",
                       Colors.black,
-                      () => AppUtils.launchURL("https://github.com"),
+                      () => AppUtils.launchURL("https://github.com/ParIQad"),
                     ),
                     _buildSocialButton(
                       Icons.work,
                       "LinkedIn",
                       Colors.blue[700]!,
-                      () => AppUtils.launchURL("https://www.linkedin.com"),
+                      () => AppUtils.launchURL("https://www.linkedin.com/in/parichad-wiangsong"),
                     ),
                     _buildSocialButton(
                       Icons.phone,
@@ -417,21 +422,18 @@ class _ContactScreenState extends State<ContactScreen> {
     final text = _messageController.text;
     if (text.isEmpty) return;
 
-    // 1. Set Loading State
     setState(() {
       _isSending = true;
     });
 
-    // 2. Call the API
-    final success = await ApiService.sendMessage(text);
+    // Use the UseCase to send the message
+    final success = await _sendMessageUseCase.call(text);
 
-    // 3. Handle Response
-    if (!mounted) return; // Check if widget is still on screen
+    if (!mounted) return;
 
     setState(() {
       _isSending = false;
       if (success) {
-        // Add to list only if API succeeded
         _messages.add(ChatMessage(
           text: text,
           isMe: true,
@@ -439,7 +441,6 @@ class _ContactScreenState extends State<ContactScreen> {
         ));
         _messageController.clear();
         
-        // Scroll to bottom
         Future.delayed(const Duration(milliseconds: 100), () {
           _scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
@@ -448,7 +449,6 @@ class _ContactScreenState extends State<ContactScreen> {
           );
         });
       } else {
-        // Show Error
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Failed to send message. Try again.")),
         );
@@ -456,7 +456,7 @@ class _ContactScreenState extends State<ContactScreen> {
     });
   }
 
-  // Helper for social buttons (kept from before)
+  // Helper for social buttons
   Widget _buildSocialButton(
     IconData icon,
     String label,

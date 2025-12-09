@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:portfolio/widgets/folder_tab.dart';
-import '../screens/profile_screen.dart';
-import '../screens/experiance_screen.dart';
-import '../screens/skills_screen.dart';
-import '../screens/contact_screen.dart';
+import '../../../../core/widgets/folder_tab.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../experience/presentation/pages/experience_page.dart';
+import '../../../skills/presentation/pages/skills_page.dart';
+import '../../../contact/presentation/pages/contact_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -63,7 +63,6 @@ class _HomePageState extends State<HomePage> {
                   ), // The bold black border
                   boxShadow: [
                     BoxShadow(
-                      // ignore: deprecated_member_use
                       color: Colors.black.withOpacity(0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
@@ -183,7 +182,6 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.person,
                         color: const Color(0xFFFFF59D), // Pastel Yellow
                         onTap: () {
-                          // Navigate to Profile Screen
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -197,7 +195,6 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.work_history,
                         color: const Color(0xFFA5D6A7), // Pastel Green
                         onTap: () {
-                          // Navigate to Experience Screen
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -224,7 +221,6 @@ class _HomePageState extends State<HomePage> {
                         icon: Icons.mail,
                         color: const Color(0xFFF48FB1), // Pastel Pink
                         onTap: () {
-                          // Navigate to Contact Page
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -262,7 +258,7 @@ class _InfoRow extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
               color: Colors.black,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/project.dart';
-import '../widgets/gradient_scaffold.dart';
-import '../widgets/project_detail_screen.dart';
+import '../../../../core/widgets/gradient_scaffold.dart';
+import '../../domain/entities/project.dart';
+import 'project_detail_page.dart';
 
 class ExperienceScreen extends StatefulWidget {
   const ExperienceScreen({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/project.dart'; // Import model เข้ามาใช้
+import '../../domain/entities/project.dart'; 
 
 class ProjectDetailScreen extends StatelessWidget {
   // รับค่า Argument ผ่าน Constructor
@@ -20,7 +20,6 @@ class ProjectDetailScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(project.title),
               background: Container(
-                // ignore: deprecated_member_use
                 color: project.color.withOpacity(0.2),
                 child: Center(
                   child: Hero(
@@ -45,10 +44,8 @@ class ProjectDetailScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      // ignore: deprecated_member_use
                       color: project.color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
-                      // ignore: deprecated_member_use
                       border: Border.all(color: project.color.withOpacity(0.5)),
                     ),
                     child: Text(

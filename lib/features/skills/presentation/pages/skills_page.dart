@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/gradient_scaffold.dart';
+import '../../../../core/widgets/gradient_scaffold.dart';
 
 class SkillsScreen extends StatelessWidget {
   const SkillsScreen({super.key});
