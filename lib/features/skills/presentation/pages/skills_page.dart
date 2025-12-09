@@ -1,8 +1,43 @@
 import 'package:flutter/material.dart';
 import '../../../../core/widgets/gradient_scaffold.dart';
+import '../../domain/entities/skill_entities.dart';
+import '../../domain/usecases/get_skills_usecase.dart';
+import '../../data/repositories/skills_repository_impl.dart';
+import '../../data/datasources/skills_local_data_source.dart';
 
-class SkillsScreen extends StatelessWidget {
+// Widgets
+import '../widgets/retro_window.dart';
+import '../widgets/skill_items.dart';
+
+class SkillsScreen extends StatefulWidget {
   const SkillsScreen({super.key});
+
+  @override
+  State<SkillsScreen> createState() => _SkillsScreenState();
+}
+
+class _SkillsScreenState extends State<SkillsScreen> {
+  // UseCase dependencies
+  late final GetSkillsUseCase _getSkillsUseCase;
+  
+  // State variables
+  late Future<List<HardSkill>> _hardSkillsFuture;
+  late Future<List<SoftSkill>> _softSkillsFuture;
+  late Future<List<LanguageSkill>> _languagesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // Dependency Injection (Manually done here, usually done via GetIt/Provider)
+    final dataSource = SkillsLocalDataSource();
+    final repository = SkillsRepositoryImpl(dataSource: dataSource);
+    _getSkillsUseCase = GetSkillsUseCase(repository);
+
+    // Initialize data fetching
+    _hardSkillsFuture = _getSkillsUseCase.executeHardSkills();
+    _softSkillsFuture = _getSkillsUseCase.executeSoftSkills();
+    _languagesFuture = _getSkillsUseCase.executeLanguages();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +68,10 @@ class SkillsScreen extends StatelessWidget {
                 border: Border.all(
                   color: Colors.black,
                   width: 1,
-                ), // The black border
+                ),
               ),
               child: const Icon(
-                Icons.chevron_left, // Use chevron for that specific look
+                Icons.chevron_left,
                 color: Colors.black,
                 size: 24,
               ),
@@ -51,17 +86,25 @@ class SkillsScreen extends StatelessWidget {
             // ------------------------------------------
             // 1. HARD SKILLS (Retro Loading Bars)
             // ------------------------------------------
-            _buildRetroWindow(
+            RetroWindow(
               title: "Hard_Skills.exe",
               icon: Icons.computer,
-              child: Column(
-                children: [
-                  _buildSkillBar("Flutter / Dart", 0.9),
-                  _buildSkillBar("Firebase", 0.8),
-                  _buildSkillBar("UI/UX Design", 0.75),
-                  _buildSkillBar("API Integration", 0.85),
-                  _buildSkillBar("Git / GitHub", 0.8),
-                ],
+              child: FutureBuilder<List<HardSkill>>(
+                future: _hardSkillsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                  } else if (snapshot.hasError) {
+                    return const Text("Error loading drivers...");
+                  } else if (snapshot.hasData) {
+                    return Column(
+                      children: snapshot.data!.map((skill) => 
+                        HardSkillItem(label: skill.name, percentage: skill.proficiency)
+                      ).toList(),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
               ),
             ),
             
@@ -70,20 +113,28 @@ class SkillsScreen extends StatelessWidget {
             // ------------------------------------------
             // 2. SOFT SKILLS (Tags / Stickers)
             // ------------------------------------------
-            _buildRetroWindow(
+            RetroWindow(
               title: "Soft_Skills.txt",
               icon: Icons.favorite,
-              child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _buildRetroTag("Teamwork"),
-                  _buildRetroTag("Problem Solving"),
-                  _buildRetroTag("Creative"),
-                  _buildRetroTag("Fast Learner"),
-                  _buildRetroTag("Communication"),
-                  _buildRetroTag("Adaptability"),
-                ],
+              child: FutureBuilder<List<SoftSkill>>(
+                future: _softSkillsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  } else if (snapshot.hasData) {
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: snapshot.data!.map((skill) => 
+                        SoftSkillItem(label: skill.name)
+                      ).toList(),
+                    );
+                  }
+                  return const Text("No soft skills found.");
+                },
               ),
             ),
 
@@ -92,160 +143,32 @@ class SkillsScreen extends StatelessWidget {
             // ------------------------------------------
             // 3. LANGUAGES (System Packs)
             // ------------------------------------------
-            _buildRetroWindow(
+            RetroWindow(
               title: "Lang_Packs.zip",
               icon: Icons.language,
-              child: Column(
-                children: [
-                  _buildLanguageRow("Thai", "Native", 5),
-                  const SizedBox(height: 10),
-                  _buildLanguageRow("English", "Professional", 4),
-                  const SizedBox(height: 10),
-                  _buildLanguageRow("Chinese", "Basic", 2),
-                ],
+              child: FutureBuilder<List<LanguageSkill>>(
+                future: _languagesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                  } else if (snapshot.hasData) {
+                    return Column(
+                      children: snapshot.data!.map((skill) => 
+                        LanguageItem(
+                          language: skill.language, 
+                          level: skill.proficiencyLevel, 
+                          stars: skill.stars
+                        )
+                      ).toList(),
+                    );
+                  }
+                  return const Text("Language pack corrupted.");
+                },
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  // ---------------------------------------------------
-  // HELPER WIDGETS
-  // ---------------------------------------------------
-
-  // The main container looking like a Windows 95 window
-  Widget _buildRetroWindow({
-    required String title,
-    required IconData icon,
-    required Widget child,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.black, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            offset: Offset(5, 5),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Window Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: const BoxDecoration(
-              color: Colors.black, // High contrast header
-              border: Border(bottom: BorderSide(color: Colors.black, width: 2)),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: Colors.white, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'Courier',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                const Icon(Icons.minimize, color: Colors.white, size: 16),
-                const SizedBox(width: 5),
-                const Icon(Icons.close, color: Colors.white, size: 16),
-              ],
-            ),
-          ),
-          // Window Body
-          Padding(
-            padding: const EdgeInsets.all(15),
-            child: child,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Hard Skill Bar (Looks like a progress bar)
-  Widget _buildSkillBar(String label, double percentage) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-          const SizedBox(height: 4),
-          Container(
-            height: 15,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black),
-              borderRadius: BorderRadius.circular(2), // Slight roundness
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    width: constraints.maxWidth * percentage,
-                    color: const Color(0xFF90CAF9), // Bar color matches theme
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Soft Skill Tag (Looks like a sticker)
-  Widget _buildRetroTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF9C4), // Pastel Yellow sticker
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            offset: Offset(2, 2),
-            blurRadius: 0,
-          )
-        ],
-      ),
-      child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-    );
-  }
-
-  // Language Row (Star rating style)
-  Widget _buildLanguageRow(String language, String level, int stars) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(language, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
-            Text(level, style: const TextStyle(fontSize: 12, color: Colors.grey,)),
-          ],
-        ),
-        Row(
-          children: List.generate(5, (index) {
-            return Icon(
-              index < stars ? Icons.star : Icons.star_border,
-              color: Colors.black,
-              size: 18,
-            );
-          }),
-        ),
-      ],
     );
   }
 }
