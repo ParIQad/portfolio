@@ -29,4 +29,22 @@ class AuthCubit extends Cubit<AuthState> {
       emit(const AuthFailure("An unexpected error occurred."));
     }
   }
+
+  Future<void> logout(int userId) async {
+    emit(AuthLogoutLoading());
+
+    try {
+      final success = await _dataSource.logout(userId);
+
+      if (success) {
+        emit(AuthLoggedOut());
+      } else {
+        // Even if API fails, we still log out locally
+        emit(AuthLoggedOut());
+      }
+    } catch (e) {
+      // Force logout even on error
+      emit(AuthLoggedOut());
+    }
+  }
 }

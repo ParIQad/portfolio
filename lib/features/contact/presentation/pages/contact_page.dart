@@ -79,7 +79,7 @@ class _ContactScreenState extends State<ContactScreen> {
               // --- TOP SECTION ---
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 child: Column(
                   children: [
                     const ContactStatusCard(),

@@ -20,7 +20,7 @@ class ProjectDetailScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(project.title),
               background: Container(
-                color: project.color.withOpacity(0.2),
+                color: project.color.withValues(alpha: 0.2),
                 child: Center(
                   child: Hero(
                     tag: project.title, // Tag ต้องตรงกันกับหน้า Home เพื่อทำ Animation
@@ -44,9 +44,9 @@ class ProjectDetailScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: project.color.withOpacity(0.1),
+                      color: project.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: project.color.withOpacity(0.5)),
+                      border: Border.all(color: project.color.withValues(alpha: 0.5)),
                     ),
                     child: Text(
                       project.category,
